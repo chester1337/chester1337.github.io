@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 10px; background: #f0f0f0; margin-bottom: 5px; cursor: pointer; }
+        li:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <input type="text" id="search" placeholder="Введите название банка...">
+    <ul id="results"></ul>
+
+    <script>
+        const banks = {{ banks_list|tojson }};
+        const results = document.getElementById('results');
+        const search = document.getElementById('search');
+
+        search.addEventListener('input', function() {
+            const query = search.value.toLowerCase();
+            const filteredBanks = banks.filter(bank => bank.toLowerCase().includes(query)).slice(0, 10);
+            results.innerHTML = '';
+            filteredBanks.forEach(bank => {
+                const li = document.createElement('li');
+                li.textContent = bank;
+                li.addEventListener('click', () => {
+                    Telegram.WebApp.sendData(bank);
+                    Telegram.WebApp.close();  // Закрываем WebApp после отправки данных
+                });
+                results.appendChild(li);
+            });
+        });
+    </script>
+</body>
+</html>

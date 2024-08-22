@@ -21,8 +21,7 @@
         .bank-item:hover {
             background-color: #f0f0f0;
         }
-        #no-results {
-            display: none;
+        #error {
             color: red;
             padding: 10px;
         }
@@ -35,9 +34,10 @@
     <div id="bank-list">
         <!-- Bank list will be loaded here -->
     </div>
-    <div id="no-results">No results found</div>
+    <div id="error"></div>
 
     <script>
+        // List of banks
         let banks = [
             "Discover Card (All Account Types)",
             "E*TRADE",
@@ -5717,33 +5717,44 @@
             "Affinity Plus Federal Credit Union"
         ];
 
+        // Render list of banks
         function renderBanks() {
             const bankList = document.getElementById('bank-list');
             bankList.innerHTML = banks.map(bank => `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`).join('');
         }
 
+        // Filter banks based on input
         function filterBanks() {
             const query = document.getElementById('search').value.toLowerCase();
             const filteredBanks = banks.filter(bank => bank.toLowerCase().includes(query));
 
             const bankList = document.getElementById('bank-list');
-            const noResults = document.getElementById('no-results');
+            const error = document.getElementById('error');
 
             if (filteredBanks.length > 0) {
-                noResults.style.display = 'none';
+                error.innerText = '';  // Clear any previous errors
                 bankList.innerHTML = filteredBanks.map(bank => `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`).join('');
             } else {
-                noResults.style.display = 'block';
+                error.innerText = 'No results found';  // Display no results message
                 bankList.innerHTML = '';
             }
         }
 
+        // Select a bank and send data to Telegram bot
         function selectBank(bank) {
-            console.log('Selected bank:', bank); // Отладка
-            window.Telegram.WebApp.sendData(bank);
+            console.log('Selected bank:', bank);  // Debugging line
+
+            // Prepare data to send
+            let data = { bank: bank };
+
+            // Send data to Telegram
+            window.Telegram.WebApp.sendData(JSON.stringify(data)); 
+
+            // Close the WebApp
+            window.Telegram.WebApp.close();
         }
 
-        // Initial render
+        // Initial render of banks
         renderBanks();
     </script>
 </body>

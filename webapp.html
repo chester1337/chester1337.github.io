@@ -32,13 +32,12 @@
     <h2>Select a Bank</h2>
     <input type="text" id="search" placeholder="Search for a bank..." oninput="filterBanks()">
     <div id="bank-list">
-        <!-- Here will be the list of banks -->
+        <!-- Bank list will be loaded here -->
     </div>
     <div id="no-results">No results found</div>
 
     <script>
-        // JavaScript to handle filtering
-        const banks = [
+        let banks = [
             "Discover Card (All Account Types)",
             "E*TRADE",
             "SouthTrust",
@@ -5715,13 +5714,12 @@
             "Legacy National Bank - Personal",
             "OnPath Federal Credit Union",
             "Affinity Plus Federal Credit Union"
-            
         ];
 
         const bankList = document.getElementById('bank-list');
         const noResults = document.getElementById('no-results');
 
-        // Initial rendering of the bank list
+        // Function to render the list of banks
         function renderBanks() {
             bankList.innerHTML = banks.map(bank => `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`).join('');
         }
@@ -5742,7 +5740,7 @@
 
         // Function to handle bank selection
         function selectBank(bank) {
-            // Send the selected bank back to the bot
+            // Send the selected bank back to the bot and close the WebApp
             Telegram.WebApp.sendData(bank);
         }
 

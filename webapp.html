@@ -27,6 +27,7 @@
             padding: 10px;
         }
     </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <h2>Select a Bank</h2>
@@ -5716,18 +5717,17 @@
             "Affinity Plus Federal Credit Union"
         ];
 
-        const bankList = document.getElementById('bank-list');
-        const noResults = document.getElementById('no-results');
-
-        // Function to render the list of banks
         function renderBanks() {
+            const bankList = document.getElementById('bank-list');
             bankList.innerHTML = banks.map(bank => `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`).join('');
         }
 
-        // Filter function to search for banks
         function filterBanks() {
             const query = document.getElementById('search').value.toLowerCase();
             const filteredBanks = banks.filter(bank => bank.toLowerCase().includes(query));
+
+            const bankList = document.getElementById('bank-list');
+            const noResults = document.getElementById('no-results');
 
             if (filteredBanks.length > 0) {
                 noResults.style.display = 'none';
@@ -5738,10 +5738,9 @@
             }
         }
 
-        // Function to handle bank selection
         function selectBank(bank) {
-            // Send the selected bank back to the bot and close the WebApp
-            Telegram.WebApp.sendData(bank);
+            console.log('Selected bank:', bank); // Отладка
+            window.Telegram.WebApp.sendData(bank);
         }
 
         // Initial render

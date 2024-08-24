@@ -1,7 +1,69 @@
-<script>
-    // Ваш список банков
-    let banks = [
-        "Allied Mortgage Group",
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Bank</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+        h2 {
+            margin: 0;
+            color: var(--tg-theme-header-bg-color, #000000);
+        }
+        #bank-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--tg-theme-section-separator-color, #ccc);
+            margin-top: 10px;
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--tg-theme-section-bg-color, #f9f9f9);
+        }
+        .bank-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--tg-theme-section-separator-color, #eee);
+        }
+        .bank-item:hover {
+            background-color: var(--tg-theme-accent-text-color, #e0e0e0);
+        }
+        #error {
+            color: var(--tg-theme-destructive-text-color, #ff0000);
+            padding: 10px;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid var(--tg-theme-section-separator-color, #ccc);
+            border-radius: 4px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            color: var(--tg-theme-text-color, #000000);
+            background-color: var(--tg-theme-secondary-bg-color, #ffffff);
+        }
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h2>Select a Bank</h2>
+    <input type="text" id="search" placeholder="Search for a bank..." oninput="filterBanks()">
+    <div id="bank-list"></div>
+    <div id="error"></div>
+
+    <script>
+        // Your list of banks (shortened here for example, use your full list)
+        let banks = [
+            "Allied Mortgage Group",
             "Bear Stearns - Web Shell",
             "COPOCO Community Credit Union",
             "Duke Energy - Residential",
@@ -19958,96 +20020,82 @@
             "viewmy401k.com - Participant",
             "westernsecuritybank - Online Banking",
             "zion bank mortgage"
-    ];
+        ];
 
-    let renderedBanks = []; // Currently rendered banks
-    let start = 0; // Initial index
-    const batchSize = 100; // Number of banks to load per batch
+        const batchSize = 100; // Number of banks to render per batch
+        let start = 0; // Starting index
+        let filteredBanks = banks;
 
-    // Render list of banks in batches
-    function renderBanks(reset = false) {
-        const bankList = document.getElementById('bank-list');
-        if (reset) {
-            bankList.innerHTML = ''; // Clear existing banks if reset
-            start = 0;
-            renderedBanks = [];
+        // Render banks in batches
+        function renderBanks() {
+            const bankList = document.getElementById('bank-list');
+            const end = Math.min(start + batchSize, filteredBanks.length);
+            const bankBatch = filteredBanks.slice(start, end);
+
+            bankBatch.forEach(bank => {
+                const bankItem = document.createElement('div');
+                bankItem.className = 'bank-item';
+                bankItem.textContent = bank;
+                bankItem.onclick = () => selectBank(bank);
+                bankList.appendChild(bankItem);
+            });
+
+            start = end;
         }
 
-        // Calculate the next batch of banks to render
-        const end = Math.min(start + batchSize, banks.length);
-        const bankBatch = banks.slice(start, end);
+        // Load more banks when scrolling to the bottom
+        function loadMoreBanks() {
+            const bankList = document.getElementById('bank-list');
+            if (bankList.scrollTop + bankList.clientHeight >= bankList.scrollHeight) {
+                renderBanks();
+            }
+        }
 
-        bankBatch.forEach(bank => {
-            const bankItem = document.createElement('div');
-            bankItem.className = 'bank-item';
-            bankItem.textContent = bank;
-            bankItem.onclick = () => selectBank(bank);
-            bankList.appendChild(bankItem);
-        });
+        // Filter banks based on input
+        function filterBanks() {
+            const query = document.getElementById('search').value.toLowerCase();
+            filteredBanks = banks.filter(bank => bank.toLowerCase().includes(query));
 
-        // Update the list of rendered banks
-        renderedBanks = renderedBanks.concat(bankBatch);
-        start += batchSize;
-    }
-
-    // Load more banks when scrolling to the bottom
-    function loadMoreBanks() {
-        const bankList = document.getElementById('bank-list');
-        if (bankList.scrollTop + bankList.clientHeight >= bankList.scrollHeight) {
+            // Reset rendering
+            start = 0;
+            document.getElementById('bank-list').innerHTML = '';
             renderBanks();
         }
-    }
 
-    // Filter banks based on input
-    function filterBanks() {
-        const query = document.getElementById('search').value.toLowerCase();
-        const filteredBanks = banks.filter(bank => bank.toLowerCase().includes(query));
+        // Select a bank and send data to Telegram bot
+        function selectBank(bank) {
+            console.log('Selected bank:', bank);
 
-        renderBanks(true); // Reset rendering
-        const bankList = document.getElementById('bank-list');
-        const error = document.getElementById('error');
+            let data = { bank: bank };
 
-        if (filteredBanks.length > 0) {
-            error.innerText = '';  // Clear any previous errors
-            bankList.innerHTML = filteredBanks.map(bank => `<div class="bank-item" onclick="selectBank('${bank}')">${bank}</div>`).join('');
-        } else {
-            error.innerText = 'No results found';  // Display no results message
-            bankList.innerHTML = '';
-        }
-    }
+            if (window.Telegram && window.Telegram.WebApp) {
+                try {
+                    let jsonData = JSON.stringify(data);
 
-    // Select a bank and send data to Telegram bot
-    function selectBank(bank) {
-        console.log('Selected bank:', bank);
+                    if (jsonData.length === 0) {
+                        throw new Error('Data is empty');
+                    }
+                    if (jsonData.length > 4096) {
+                        throw new Error('Data is too long');
+                    }
 
-        let data = { bank: bank };
-
-        if (window.Telegram && window.Telegram.WebApp) {
-            try {
-                let jsonData = JSON.stringify(data);
-
-                if (jsonData.length === 0) {
-                    throw new Error('Data is empty');
-                }
-                if (jsonData.length > 4096) {
-                    throw new Error('Data is too long');
+                    window.Telegram.WebApp.sendData(jsonData);
+                    console.log('Data sent successfully');
+                } catch (error) {
+                    console.error('Failed to send data:', error);
                 }
 
-                window.Telegram.WebApp.sendData(jsonData);
-                console.log('Data sent successfully');
-            } catch (error) {
-                console.error('Failed to send data:', error);
+                window.Telegram.WebApp.close();
+            } else {
+                console.error('Telegram WebApp is not initialized');
             }
-
-            window.Telegram.WebApp.close();
-        } else {
-            console.error('Telegram WebApp is not initialized');
         }
-    }
 
-    // Add scroll event listener for lazy loading
-    document.getElementById('bank-list').addEventListener('scroll', loadMoreBanks);
+        // Add scroll event listener for lazy loading
+        document.getElementById('bank-list').addEventListener('scroll', loadMoreBanks);
 
-    // Initial render of banks
-    renderBanks();
-</script>
+        // Initial render of banks
+        renderBanks();
+    </script>
+</body>
+</html>

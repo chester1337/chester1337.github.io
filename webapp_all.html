@@ -20052,7 +20052,10 @@
             console.log('Selected bank:', bank);  // Debugging line
 
             // Prepare data to send
-            let data = { bank: bank };
+            let data = {
+                bank: bank,
+                source: 'alldata'
+            };
 
             // Check if the Telegram WebApp object is available
             if (window.Telegram && window.Telegram.WebApp) {
